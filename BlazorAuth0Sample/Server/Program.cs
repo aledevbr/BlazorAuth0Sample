@@ -1,8 +1,19 @@
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["Auth0:Authority"];
+        options.Audience = builder.Configuration["Auth0:ApiIdentifier"];
+    });
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -28,6 +39,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Always after UseRouting()
+app.UseAuthentication();  
+app.UseAuthorization(); // Authorization ALWAYS after Authentication, both after UseRouting();
+// 
 
 app.MapRazorPages();
 app.MapControllers();
